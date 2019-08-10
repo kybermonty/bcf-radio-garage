@@ -1,2 +1,1 @@
-# BigClown project - Thermometer2
-
+# Firmware for Garage door
