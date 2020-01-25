@@ -2,12 +2,15 @@
 #define _APPLICATION_H
 
 #ifndef FIRMWARE
-#define FIRMWARE "garage"
+#define FIRMWARE "garage-controller"
 #endif
 
 #ifndef VERSION
 #define VERSION "1.0"
 #endif
+
+#define LED_STRIP_COUNT 144
+#define LED_STRIP_TYPE 3
 
 #include <bcl.h>
 

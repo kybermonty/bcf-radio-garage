@@ -21,6 +21,15 @@ bc_switch_t door_sensor_a;
 bc_switch_t door_sensor_b;
 bc_scheduler_task_id_t task_relay_off;
 
+static uint32_t _bc_module_power_led_strip_dma_buffer[LED_STRIP_COUNT * LED_STRIP_TYPE * 2];
+const bc_led_strip_buffer_t led_strip_buffer =
+{
+    .type = LED_STRIP_TYPE,
+    .count = LED_STRIP_COUNT,
+    .buffer = _bc_module_power_led_strip_dma_buffer
+};
+bc_led_strip_t led_strip;
+
 static void temperature_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_temperature_i2c_address_t i2c_address, temperature_tag_t *tag);
 static void humidity_tag_init(bc_tag_humidity_revision_t revision, bc_i2c_channel_t i2c_channel, humidity_tag_t *tag);
 static void lux_meter_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_lux_meter_i2c_address_t i2c_address, lux_meter_tag_t *tag);
@@ -60,6 +69,7 @@ void application_init(void)
     bc_switch_set_event_handler(&door_sensor_b, door_sensor_event_handler, NULL);
 
     bc_module_power_init();
+    bc_led_strip_init(&led_strip, bc_module_power_get_led_strip_driver(), &led_strip_buffer);
     task_relay_off = bc_scheduler_register(task_relay_off_handler, NULL, BC_TICK_INFINITY);
 
     bc_radio_pairing_request(FIRMWARE, VERSION);
@@ -233,6 +243,19 @@ void door_sensor_send_state(bc_switch_t *self)
 
     bool state = bc_switch_get_state(self);
     bc_radio_pub_bool(topic, &state);
+
+    if (channel == 'a')
+    {
+        if (state)
+        {
+            bc_led_strip_fill(&led_strip, 0xFFFFFF00);
+        }
+        else
+        {
+            bc_led_strip_fill(&led_strip, 0x00000000);
+        }
+        bc_led_strip_write(&led_strip);
+    }
 }
 
 void door_sensor_event_handler(bc_switch_t *self, bc_switch_event_t event, void *event_param)
